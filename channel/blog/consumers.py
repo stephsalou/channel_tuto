@@ -42,21 +42,37 @@ class notifConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         print('recuperaton du message envoyer par un channel avant le broadcast')
         print('data :',text_data_json)
-        message = text_data_json['message']
-        is_read = text_data_json['is_read']
-        if is_read :
-            is_del = await self.del_message(message)
-        else:
-            # Send message to room group
+        if 'message' in text_data_json and 'is_read' in text_data_json:
+            message = text_data_json['message']
+            is_read = text_data_json['is_read']
+            if is_read :
+                is_del = await self.del_message(message)
+            else:
+                # Send message to room group
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'is_read':False
+                    }
+                )
+                mess = await self.message_save(message)
+        elif 'mode' in text_data_json and 'message' in text_data_json:
+            mode = text_data_json['mode']
+            message = text_data_json['message']
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
-                    'type': 'chat_message',
-                    'message': message,
-                    'is_read':False
+                    'type':mode,
+                    'message':message,
                 }
             )
-            mess = await self.message_save(message)
+            if mode == 'switch':
+                print('sending request ======================== ')
+                await self.send(text_data=json.dumps({
+                    'refresh':True
+                }))
         print('group populated finished')
     # Receive message from room group
     async def chat_message(self, event):
@@ -70,6 +86,13 @@ class notifConsumer(AsyncWebsocketConsumer):
             'is_read':is_read
         }))
         print('channel populated finished')
+    async def switch(self,event):
+        msg = event['message']
+        print('called chat message were group.send action has callable and send group message through specify channel ')
+        print('data :',event)
+        msg = await self.take_message(msg)
+        await self.switch_message(msg)
+    print('channel populated finished')
     @database_sync_to_async
     def message_save(self,message):
         print('is saved?')
@@ -89,3 +112,10 @@ class notifConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_all_message(self):
         return Message.objects.all().order_by('date_upd')
+    @database_sync_to_async
+    def take_message(self,message):
+        return Message.objects.filter(message=message)[:1].get() or None
+    @database_sync_to_async 
+    def switch_message(self,message):
+        message.is_read=True
+        message.save()

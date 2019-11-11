@@ -20,8 +20,10 @@
         console.log('on message received executing onmessage function')
         var data = JSON.parse(e.data);
         var message = data['message'];
-        var is_read = data['is_read']
+        var is_read = data['is_read'];
         document.querySelector('#chat-log').value += (message + '\n');
+        
+
     };
 
     chatSocket.onclose = function(e) {
@@ -40,7 +42,7 @@
         var message = messageInputDom.value;
         chatSocket.send(JSON.stringify({
             'message': message,
-            'is_read':False
+            'is_read':false
         }));
 
         messageInputDom.value = '';

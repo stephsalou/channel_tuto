@@ -11,7 +11,7 @@
     <script>
             document.querySelector('#notif').innerHTML = 0
             var roomName = 'notification';
-            var message = ''
+            var message = []
             var chatSocket = new WebSocket(
                 'ws://' + window.location.host +
                 '/ws/notif/' + roomName + '/');
@@ -19,11 +19,18 @@
             chatSocket.onmessage = function(e) {
                 console.log('on message received executing onmessage function')
                 var data = JSON.parse(e.data);
-                message = data['message'];
-                var is_reqd = data['is_read'];
                 console.log(data)
-                let val = document.querySelector('#notif').innerHTML 
-                document.querySelector('#notif').innerHTML = parseInt(val) + 1
+                if (data['refresh']){
+                    document.querySelector('#notif').innerHTML = parseInt(0)
+                }
+                else{
+                    message.push(data['message']);
+                    var is_read = data['is_read'];
+                    console.log(data)
+                    let val = document.querySelector('#notif').innerHTML 
+                    document.querySelector('#notif').innerHTML = parseInt(val) + 1
+                }
+
             };
     
             chatSocket.onclose = function(e) {
@@ -32,10 +39,13 @@
     
             document.querySelector('#notif').onclick = function(e) {
                 document.querySelector('#notif').value = 0
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                    'is_read':true
-                }));
+                message.forEach((v,k)=>{
+                    chatSocket.send(JSON.stringify({
+                        'message': v,
+                        'mode':'switch'
+                    }));
+                })
+                
             };
     </script>
 </body>
