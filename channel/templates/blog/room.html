@@ -3,9 +3,20 @@
 <head>
     <meta charset="utf-8"/>
     <title>Chat Room</title>
+    <style>
+        .read{
+            background-color: rgba(91, 129, 60, 0.6);
+        }
+        .no-read{
+            background-color: rgba(238, 97, 62, 0.6);
+        }
+    </style>
 </head>
 <body>
     <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
+    <div id="msg-section">
+
+    </div>
     <input id="chat-message-input" type="text" size="100"/><br/>
     <input id="chat-message-submit" type="button" value="Send"/>
 </body>
@@ -21,6 +32,18 @@
         var data = JSON.parse(e.data);
         var message = data['message'];
         var is_read = data['is_read'];
+        if (is_read){
+            mess = document.createElement('p')
+            mess.setAttribute('class','read')
+            console.log(mess)
+            mess.innerHTML = message
+        }else{
+            mess = document.createElement('p')
+            mess.setAttribute('class','no-read')
+            console.log(mess)
+            mess.innerHTML = message
+        }
+        document.querySelector('#msg-section').appendChild(mess)
         document.querySelector('#chat-log').value += (message + '\n');
         
 

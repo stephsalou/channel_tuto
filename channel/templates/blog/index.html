@@ -27,8 +27,11 @@
                     message.push(data['message']);
                     var is_read = data['is_read'];
                     console.log(data)
-                    let val = document.querySelector('#notif').innerHTML 
-                    document.querySelector('#notif').innerHTML = parseInt(val) + 1
+                    if (!is_read){
+                        let val = document.querySelector('#notif').innerHTML 
+                        document.querySelector('#notif').innerHTML = parseInt(val) + 1
+                    }
+                    
                 }
 
             };
